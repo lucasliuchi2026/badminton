@@ -42,8 +42,8 @@ git commit -m "打球吗 v1：FastAPI 后端 + 微信小程序"
   - 不加盘 → 纯免费，但**实例重启/重新部署/休眠唤醒后 SQLite 和素材清空**。若如此，把 `DATABASE_URL`、`UPLOAD_DIR` 也删掉（用镜像默认值即可，行为相同）。
 
 ### 4. 部署与验证
-- 首次 Build 约 3~5 分钟。完成后得到 `https://badminton-api.onrender.com`。
-- 浏览器访问 `https://badminton-api.onrender.com/api/health` 应返回 `{"ok":true}`。
+- 首次 Build 约 3~5 分钟。完成后得到 `https://badminton-api-5k6c.onrender.com`。
+- 浏览器访问 `https://badminton-api-5k6c.onrender.com/api/health` 应返回 `{"ok":true}`。
 - 免费档 15 分钟无请求会休眠，首次访问冷启动约 30~60 秒（保活见第 5 步）。
 
 ### 5. 保活（GitHub Actions，免费）
@@ -56,7 +56,7 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -s https://badminton-api.onrender.com/api/health
+      - run: curl -s https://badminton-api-5k6c.onrender.com/api/health
 ```
 每 10 分钟 ping 一次基本可保持常驻，冷启动只发生在每次部署后。
 
@@ -70,11 +70,11 @@ jobs:
 - 下载微信开发者工具 → 导入项目 → 目录选 `miniprogram/` → AppID 填测试号 AppID（或选"测试号"游客模式）
 
 ### 3. 指向后端
-- 改 `miniprogram/config.js` 的 `BASE_URL`：本地联调 `http://127.0.0.1:8000`；部署后 `https://badminton-api.onrender.com`
+- 改 `miniprogram/config.js` 的 `BASE_URL`：本地联调 `http://127.0.0.1:8000`；部署后 `https://badminton-api-5k6c.onrender.com`
 - 本地联调需在开发者工具"详情→本地设置"勾选 **不校验合法域名**
 
 ### 4. 正式号域名白名单（将来换正式号时）
-- 小程序后台 → 开发设置 → 服务器域名 → request 与 uploadFile 域名均加 `https://badminton-api.onrender.com`
+- 小程序后台 → 开发设置 → 服务器域名 → request 与 uploadFile 域名均加 `https://badminton-api-5k6c.onrender.com`
 
 ### 5. 真机预览给群友
 - 开发者工具点"预览"生成二维码；群友首次打开后，需在小程序右上角"…"→ 开发调试（vConsole）→ 开启调试，才能请求非白名单域名（测试号特性）
