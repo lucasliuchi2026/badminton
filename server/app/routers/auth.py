@@ -22,10 +22,14 @@ def _user_out(u: User):
 @router.post("/login")
 async def login(body: LoginIn, db: Session = Depends(get_db)):
     """微信 code 登录；单群模式：第一个注册的用户自动成为群主"""
+    if body.appid and settings.WECHAT_APPID and body.appid != settings.WECHAT_APPID:
+        # 先拦一层：code 属于小程序侧那个 AppID，跟后端配的不是同一个，交给微信只会回 40029，看不懂
+        raise HTTPException(400, f"AppID 不一致：小程序侧 {body.appid}，后端 WECHAT_APPID {settings.WECHAT_APPID}")
     try:
         openid = await code_to_openid(body.code)
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise HTTPException(400, f"{e}；后端使用的 AppID={settings.WECHAT_APPID or '（未配置，dev 模式）'}"
+                                 f"，小程序侧上报={body.appid or '（未上报）'}")
     user = db.query(User).filter(User.openid == openid).first()
     if user is None:
         is_first = db.query(User).count() == 0

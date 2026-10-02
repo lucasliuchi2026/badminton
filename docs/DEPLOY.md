@@ -96,16 +96,20 @@ curl "https://api.weixin.qq.com/sns/jscode2session?appid=<AppID>&secret=<AppSecr
 ### 2. 导入项目
 - 下载微信开发者工具 → 导入项目 → 目录选 `miniprogram/` → AppID 填测试号 AppID（或选"测试号"游客模式）
 - 若项目已导入过：改完 `project.config.json` 的 `appid` 后，需在开发者工具「详情 → 基本信息 → AppID」重新设置或关项目重开，光点编译不会重载 appid
-- 为此小程序加了 `config.js` 的 `EXPECTED_APPID`（填后端 `WECHAT_APPID` 的值，AppID 不是密钥）：启动时会和 `wx.getAccountInfoSync()` 拿到的真实 AppID 比对，不一致直接弹窗说明，而不是只丢一个 400 给你。**换正式号或重置测试号时，`project.config.json`、`config.js` 的 `EXPECTED_APPID`、后端 `WECHAT_APPID` 三处要一起改**
+- 排错已经内置：小程序登录时会把 `wx.getAccountInfoSync()` 拿到的真实 AppID 一起上报，后端与自己的 `WECHAT_APPID` 比对，不一致就直接回 `400 AppID 不一致：小程序侧 wxA，后端 WECHAT_APPID wxB`，弹窗里两个值一目了然。另外 `GET /api/health` 会回报 `wechat_login`（`prod`/`dev`）和后端当前的 `appid`（AppID 是公开信息，不是密钥），不用登后台就能确认环境变量生效没有
 
 ### 2.1 登录后首页空白 / 控制台报 401 的排错顺序
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | `GET /api/group 401`，随后自动恢复 | 后端重启/重新部署把 SQLite 清了，本地存的旧 token 对应的人已不存在 | 正常，`utils/request.js` 会丢旧 token、静默重登并重试一次 |
-| `POST /api/auth/login 400`，toast「微信登录失败: invalid code(errcode=40029)」 | 三处 AppID 不一致（多半是 `project.config.json` 里是占位 appid） | 对齐 appid 后重开项目 |
-| `POST /api/auth/login 400`，`errcode=40125` | `WECHAT_SECRET` 与 appid 不配对（测试号重置过密码） | 重新抄 AppSecret 更新 Render 环境变量并重新部署 |
+| 弹窗「AppID 不一致：小程序侧 wxA，后端 WECHAT_APPID wxB」 | 开发者工具还在用旧/别的 AppID（改了 `project.config.json` 没重开项目最常见） | 按弹窗提示对齐：改后端两个变量，或改 `project.config.json` 后关项目重开 |
+| `POST /api/auth/login 400`，`errcode=40029`（且没报"AppID 不一致"，即两侧 AppID 相同） | code 不属于该 AppID：常见是把**公众号测试号**的 AppID 当成了**小程序**的填进后端；或 code 被重复使用/超过 5 分钟 | 到测试号页面找「小程序」那一栏的 AppID；重新编译再登录一次 |
+| `POST /api/auth/login 400`，`errcode=40013` | 后端 `WECHAT_APPID` 本身微信不认（抄错/不存在） | 核对 AppID；`GET /api/health` 能看后端当前值 |
+| `POST /api/auth/login 400`，`errcode=40125` | `WECHAT_SECRET` 与该 appid 不配对（测试号重置过密码） | 重新抄 AppSecret 更新 Render 环境变量并重新部署 |
 | `errcode=40164` IP 不在白名单 | 微信侧要求配 IP 白名单 | 实测 Render 新加坡出口 IP **不会**触发；若换到别家平台遇到，去后台取消 IP 白名单限制 |
 | 请求直接 fail、无状态码 | 未勾「不校验合法域名」或后端在休眠 | 本地设置勾上；先访问 `/api/health` 唤醒 |
+
+> 微信侧校验顺序是 **AppID+AppSecret 先、code 后**：`40013/40125` 说明凭据有问题，能走到 `40029` 就说明后端凭据是好的，问题出在那个 code 属于哪个 AppID。
 
 ### 3. 指向后端
 - 改 `miniprogram/config.js` 的 `BASE_URL`：本地联调 `http://127.0.0.1:8000`；部署后 `https://badminton-api-5k6c.onrender.com`

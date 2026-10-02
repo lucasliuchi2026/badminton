@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class LoginIn(BaseModel):
     code: str = Field(min_length=1)
+    appid: Optional[str] = None  # 小程序侧 getAccountInfoSync 的 AppID，仅用于比对排错
     nickname: Optional[str] = None
     avatar: Optional[str] = None
     gender: Optional[str] = None  # M/F

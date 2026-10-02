@@ -1,10 +1,10 @@
 const api = require('./utils/request');
-const config = require('./config');
 
 // 微信/后端的登录报错翻译成人话，省得每次翻 Network 面板
 function explain(msg) {
   const s = String(msg || '');
-  if (/40029/.test(s)) return '微信拒绝了 code（40029）：通常是项目 AppID 与后端不一致，请关闭项目重新打开';
+  if (/AppID 不一致/.test(s)) return s + '。处理：开发者工具「详情 → 基本信息」确认 AppID，或关项目重开（改 project.config.json 不会热生效）';
+  if (/40029/.test(s)) return '微信拒绝了 code（40029）：AppID 与 code 不匹配（多半是复制了公众号测试号的 AppID，而不是「小程序」那一栏的），或 code 已被用过';
   if (/40125|40013/.test(s)) return 'AppID/AppSecret 不匹配（' + (s.match(/\d{5}/) || ['40125'])[0] + '）：测试号重置过密钥，需更新后端环境变量';
   if (/40164/.test(s)) return '后端出口 IP 不在微信白名单（40164）：到测试号后台清空 IP 白名单限制';
   if (/45009/.test(s)) return '登录接口调用超限（45009），稍后再试';
@@ -29,15 +29,11 @@ App({
     return new Promise((resolve, reject) => {
       wx.login({
         success: res => {
-          // AppID 自检：改了 project.config.json 但没重开项目时，wx.login 仍走旧 AppID，
-          // 后端会回 400（微信 40029），这里提前拦下并给出可操作提示
+          // 把自己的 AppID 一起上报：与后端 WECHAT_APPID 不一致时，后端会明确回「AppID 不一致：...」
+          // （改了 project.config.json 但没关项目重开时，wx.login 仍走旧 AppID，只表现为一个 400）
           let running = '';
           try { running = (wx.getAccountInfoSync().miniProgram || {}).appId || ''; } catch (e) {}
-          if (config.EXPECTED_APPID && running && running !== config.EXPECTED_APPID) {
-            reject(new Error('当前项目 AppID 是 ' + running + '，后端配的是 ' + config.EXPECTED_APPID + '。请关闭项目后重新打开（改 project.config.json 不会热生效）。'));
-            return;
-          }
-          api.post('/api/auth/login', { code: res.code })
+          api.post('/api/auth/login', { code: res.code, appid: running })
             .then(r => {
               wx.setStorageSync('token', r.token);
               this.globalData.user = r.user;

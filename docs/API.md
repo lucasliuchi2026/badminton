@@ -1,8 +1,9 @@
 # 打球吗 API 文档
 
-Base URL：本地 `http://127.0.0.1:8000`，部署后 `https://<app>.fly.dev`
+Base URL：本地 `http://127.0.0.1:8000`，部署后 `https://badminton-api-5k6c.onrender.com`
 
 - 除 `/api/auth/login`、`/api/health` 外，所有接口需请求头 `Authorization: Bearer <token>`
+- `GET /api/health` → `{ "ok": true, "app": "badminton-api", "wechat_login": "prod|dev", "appid": "后端 WECHAT_APPID" }`（`dev`=未配微信凭据，用假 code 也能登录；AppID 是公开信息）
 - 统一错误格式：`{"detail": "错误原因"}`，状态码 400（业务校验）/ 401（未登录）/ 403（非群主）/ 404
 - 点卡为**内部记账积分，无真实资金**
 
@@ -11,8 +12,10 @@ Base URL：本地 `http://127.0.0.1:8000`，部署后 `https://<app>.fly.dev`
 ### POST /api/auth/login
 入参：
 ```json
-{ "code": "wx.login返回的code", "nickname": "张三(可选)", "gender": "M(可选)", "avatar": "(可选)" }
+{ "code": "wx.login返回的code", "appid": "小程序当前AppID(可选，仅用于与后端比对排错)",
+  "nickname": "张三(可选)", "gender": "M(可选)", "avatar": "(可选)" }
 ```
+- 传了 `appid` 且与后端 `WECHAT_APPID` 不同 → `400 {"detail":"AppID 不一致：小程序侧 wxA，后端 WECHAT_APPID wxB"}`（不再让微信只回一个看不懂的 40029）
 返回（**第一个登录的用户自动成为群主 owner**，其余为 member）：
 ```json
 { "token": "eyJhb...", "user": { "id": 1, "openid": "dev-xxx", "nickname": "张三",
@@ -134,4 +137,4 @@ Base URL：本地 `http://127.0.0.1:8000`，部署后 `https://<app>.fly.dev`
 ### GET /api/group 首页 Hero（club_name/slogan/intro，未设置时返回内置默认值）
 ### PUT /api/group 🔒群主 入参 `{ "slogan": "无羽伦比，扣杀生活！" }`（字段可省略）
 ### GET /api/users 成员基础列表（选人用，不含余额）
-### GET /api/health → `{ "ok": true }`（fly.io 探活也用这个）
+### GET /api/health（见文首：探活 + 回报微信登录模式与后端 AppID，Render 健康检查也用它）
