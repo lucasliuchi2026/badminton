@@ -16,9 +16,10 @@ git commit -m "打球吗 v1：FastAPI 后端 + 微信小程序"
 ```
 然后在 GitHub 新建仓库（建议 Private），`git remote add origin ... && git push -u origin main`。
 
-### 2. 注册 Render
+### 2. 注册 Render 并绑卡（必须）
 - https://render.com → Sign Up → 可用 GitHub 账号直接登录授权。
-- 免费档需要验证身份（可绑 Visa/万事达卡或按提示跳过验证仅用免费资源；若无法验证，见文末备选）。
+- **注意：创建 free 实例也要求先在 https://dashboard.render.com/billing 绑一张 Visa/万事达卡**（free 档按 $0 计费，仅用于身份验证）。未绑卡时 API 建服务会返回 `402 Payment information is required`。
+- 若无法绑卡：见文末备选方案。
 
 ### 3. 创建 Web Service
 - Dashboard → **New + → Web Service** → 选中刚才的 GitHub 仓库 → 若仓库根目录带本项目的 `render.yaml`，Blueprint 会自动导入以下配置；也可手动填：
