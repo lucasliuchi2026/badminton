@@ -40,11 +40,27 @@ git commit -m "打球吗 v1：FastAPI 后端 + 微信小程序"
 - **Disk（可选，$1/月）**：Add Disk → 名称 `badminton-data`、挂载路径 `/data`、1GB。
   - 加盘 → 数据持久，0 元变 1 元/月，**强烈推荐**（几十人群的回忆都在这）。
   - 不加盘 → 纯免费，但**实例重启/重新部署/休眠唤醒后 SQLite 和素材清空**。若如此，把 `DATABASE_URL`、`UPLOAD_DIR` 也删掉（用镜像默认值即可，行为相同）。
+  - 实测确认：本次不带盘重启后，用户 id 从头自增、活动记录全部消失，行为与文档一致。当前线上为"无盘"状态，正式给群友用之前建议加盘。
 
 ### 4. 部署与验证
 - 首次 Build 约 3~5 分钟。完成后得到 `https://badminton-api-5k6c.onrender.com`。
-- 浏览器访问 `https://badminton-api-5k6c.onrender.com/api/health` 应返回 `{"ok":true}`。
+- 浏览器访问 `https://badminton-api-5k6c.onrender.com/api/health` 应返回 `{"ok":true,"app":"badminton-api"}`。
 - 免费档 15 分钟无请求会休眠，首次访问冷启动约 30~60 秒（保活见第 5 步）。
+- ✅ 本仓库已按上述配置部署并通过线上冒烟：登录 → 建收费局 → 点卡调整 → 报名扣卡 → 取消退费 → 记分 → 战报，权限（403）、名额/人数校验、余额不足（400）均符合预期。
+
+### 4.1 代码更新后如何重新部署
+**重要**：这个服务是在 Render 网页上手动填仓库 URL 创建的（不是授权 GitHub App 的仓库连接），`autoDeploy` 不会自动触发。每次 push 新代码后需手动部署，二选一：
+- Dashboard → 服务 → **Manual Deploy → Deploy latest commit**；
+- 或 API（把 `<key>` 换成 Account → API Keys 里的密钥，`srv-...` 换成自己的服务 id）：
+```bash
+curl -X POST "https://api.render.com/v1/services/srv-davh4vmk1f9s73aa80ag/deploys" \
+  -H "Authorization: Bearer <key>" -H "Content-Type: application/json" \
+  -d '{"revision":"main"}'
+```
+构建约 1~2 分钟，成功后新版本自动切流量。想恢复自动部署，可在 Dashboard 该服务的 Settings → Deploy → 重新连接 GitHub 仓库授权。
+
+### 4.2 上线前必须补的环境变量
+未设置 `WECHAT_APPID` / `WECHAT_SECRET` 时后端走**开发登录模式**：openid = `dev-<code>`，每次 `wx.login` 拿到新 code 就会**注册一个新账号**，身份不持久，且第一个登录者会被判为群主。真机给群友用之前，必须在 Render Environment Variables 里填入测试号的 AppID/AppSecret 并重新部署。
 
 ### 5. 保活（GitHub Actions，免费）
 新建 `.github/workflows/keepalive.yml`：
@@ -59,6 +75,7 @@ jobs:
       - run: curl -s https://badminton-api-5k6c.onrender.com/api/health
 ```
 每 10 分钟 ping 一次基本可保持常驻，冷启动只发生在每次部署后。
+本仓库已带 `.github/workflows/keepalive.yml`（GitCode 上也有该文件）。注意：**push 到 GitHub 的 `.github/workflows/**` 需要 PAT 带 `workflow` 权限**，否则 GitHub 返回 404 拒绝写入。若你的 token 没这个 scope，直接在 GitHub 网页 New file → 路径填 `.github/workflows/keepalive.yml` → 粘贴上面内容 → Commit 即可。
 
 ## 二、小程序端
 
