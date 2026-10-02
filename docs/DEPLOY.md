@@ -96,6 +96,7 @@ curl "https://api.weixin.qq.com/sns/jscode2session?appid=<AppID>&secret=<AppSecr
 ### 2. 导入项目
 - 下载微信开发者工具 → 导入项目 → 目录选 `miniprogram/` → AppID 填测试号 AppID（或选"测试号"游客模式）
 - 若项目已导入过：改完 `project.config.json` 的 `appid` 后，需在开发者工具「详情 → 基本信息 → AppID」重新设置或关项目重开，光点编译不会重载 appid
+- 为此小程序加了 `config.js` 的 `EXPECTED_APPID`（填后端 `WECHAT_APPID` 的值，AppID 不是密钥）：启动时会和 `wx.getAccountInfoSync()` 拿到的真实 AppID 比对，不一致直接弹窗说明，而不是只丢一个 400 给你。**换正式号或重置测试号时，`project.config.json`、`config.js` 的 `EXPECTED_APPID`、后端 `WECHAT_APPID` 三处要一起改**
 
 ### 2.1 登录后首页空白 / 控制台报 401 的排错顺序
 | 现象 | 原因 | 处理 |
