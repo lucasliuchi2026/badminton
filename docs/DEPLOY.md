@@ -37,6 +37,7 @@ git commit -m "打球吗 v1：FastAPI 后端 + 微信小程序"
   - `JWT_SECRET`：一串随机长字符串（32 位以上）
   - `DATABASE_URL`：`sqlite:////data/badminton.db`
   - `UPLOAD_DIR`：`/data/uploads`
+  - `WECHAT_APPID` / `WECHAT_SECRET`：测试号的 AppID 与 AppSecret（见下方 4.2）
 - **Disk（可选，$1/月）**：Add Disk → 名称 `badminton-data`、挂载路径 `/data`、1GB。
   - 加盘 → 数据持久，0 元变 1 元/月，**强烈推荐**（几十人群的回忆都在这）。
   - 不加盘 → 纯免费，但**实例重启/重新部署/休眠唤醒后 SQLite 和素材清空**。若如此，把 `DATABASE_URL`、`UPLOAD_DIR` 也删掉（用镜像默认值即可，行为相同）。
@@ -46,7 +47,8 @@ git commit -m "打球吗 v1：FastAPI 后端 + 微信小程序"
 - 首次 Build 约 3~5 分钟。完成后得到 `https://badminton-api-5k6c.onrender.com`。
 - 浏览器访问 `https://badminton-api-5k6c.onrender.com/api/health` 应返回 `{"ok":true,"app":"badminton-api"}`。
 - 免费档 15 分钟无请求会休眠，首次访问冷启动约 30~60 秒（保活见第 5 步）。
-- ✅ 本仓库已按上述配置部署并通过线上冒烟：登录 → 建收费局 → 点卡调整 → 报名扣卡 → 取消退费 → 记分 → 战报，权限（403）、名额/人数校验、余额不足（400）均符合预期。
+- ✅ 本仓库已按上述配置部署并通过线上冒烟：登录 → 建收费局 → 点卡调整 → 报名扣卡 → 取消退费 → 记分 → 战报，权限（403）、名额/人数校验、余额不足（400）均符合预期（31 项断言全过）。
+  注：那次冒烟跑在开发登录模式下（凭据未配，可用任意假 code 造账号）。配好 `WECHAT_APPID` 后假 code 会返回 40029，线上不便再跑全自动冒烟 —— 回归请走本地 `uvicorn`（不设微信变量）+ `pytest`，真机登录验证交给开发者工具/手机端。
 
 ### 4.1 代码更新后如何重新部署
 **重要**：这个服务是在 Render 网页上手动填仓库 URL 创建的（不是授权 GitHub App 的仓库连接），`autoDeploy` 不会自动触发。每次 push 新代码后需手动部署，二选一：
@@ -59,8 +61,11 @@ curl -X POST "https://api.render.com/v1/services/srv-davh4vmk1f9s73aa80ag/deploy
 ```
 构建约 1~2 分钟，成功后新版本自动切流量。想恢复自动部署，可在 Dashboard 该服务的 Settings → Deploy → 重新连接 GitHub 仓库授权。
 
-### 4.2 上线前必须补的环境变量
-未设置 `WECHAT_APPID` / `WECHAT_SECRET` 时后端走**开发登录模式**：openid = `dev-<code>`，每次 `wx.login` 拿到新 code 就会**注册一个新账号**，身份不持久，且第一个登录者会被判为群主。真机给群友用之前，必须在 Render Environment Variables 里填入测试号的 AppID/AppSecret 并重新部署。
+### 4.2 微信登录凭据（已配置并实测通过）
+- 作用：未设置 `WECHAT_APPID` / `WECHAT_SECRET` 时后端走**开发登录模式**（openid = `dev-<code>`），每次 `wx.login` 拿到新 code 都会注册一个新账号，身份不持久、点卡记录存不住。真机使用前必须配上。
+- 在哪查：**测试号** https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login 微信扫码登录，页面第一屏即「开发者ID(AppID)」和「开发者密码(AppSecret，点生成/重置后显示明文）」；**正式号** mp.weixin.qq.com →「开发」→「开发管理」→「开发设置」。
+- 现状（2026-10-02）：测试号 AppID/AppSecret 已写入本服务环境变量并重新部署。用假 code 探 `POST /api/auth/login` 返回 `400 微信登录失败: invalid code (errcode=40029)` —— 这恰好证明三件事：凭据已生效（不再是 dev 模式）、AppID/AppSecret 被微信接受、**Render 新加坡出口 IP 不在微信 40164 白名单拦截名单里**。换真 `wx.login` 的 code 即可正常登录。
+- ⚠️ 用 API 改变量时的坑：`PUT /v1/services/{id}/env-vars` 是**整体替换**语义，只提交新键会把 `JWT_SECRET` 等旧键删掉（`POST .../env-vars` 在此接口返回 405）。正确做法是 GET 现有全部键、合并后整份 PUT；单个键改动可用 `PATCH /v1/services/{id}/env-vars/{key}`。改完必须再触发一次部署（§4.1）才生效。
 
 ### 5. 保活（GitHub Actions，免费）
 新建 `.github/workflows/keepalive.yml`：
