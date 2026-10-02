@@ -45,6 +45,13 @@ App({
   // 页面统一入口：等登录完成再取数
   ready(cb) {
     const p = this.loginReady || this.login();
-    p.then(cb).catch(e => wx.showToast({ title: '登录失败，请开启调试模式或检查后端', icon: 'none' }));
+    this.loginReady = p;
+    p.then(cb).catch(e => {
+      this.loginReady = null;   // 允许下次 onShow 重试（后端冷启动/清库时不至于卡死）
+      if (this._loginToastShown) return;
+      this._loginToastShown = true;
+      // 把后端原话摊出来，方便区分「AppID 不匹配 / 网络不通 / 后端挂了」
+      wx.showToast({ title: '登录失败：' + ((e && e.message) || '请检查后端与 AppID'), icon: 'none', duration: 3000 });
+    });
   }
 });

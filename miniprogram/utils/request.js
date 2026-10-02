@@ -1,6 +1,6 @@
 const config = require('../config');
 
-function request(path, method, data, silent) {
+function request(path, method, data, silent, retried) {
   return new Promise((resolve, reject) => {
     wx.request({
       url: config.BASE_URL + path,
@@ -9,8 +9,13 @@ function request(path, method, data, silent) {
       header: { Authorization: 'Bearer ' + (wx.getStorageSync('token') || '') },
       success(res) {
         if (res.statusCode === 401) {
-          // token 失效：重新静默登录后重试一次
-          getApp().login(true).then(() => request(path, method, data, true)).then(resolve).catch(reject);
+          if (retried) {
+            reject(new Error('登录态无效(' + path + ')'));
+            return;
+          }
+          // token 失效（后端重部署清库后旧 token 必然 401）：丢掉旧 token，静默重新登录后重试一次
+          wx.removeStorageSync('token');
+          getApp().login(true).then(() => request(path, method, data, silent, true)).then(resolve).catch(reject);
           return;
         }
         if (res.statusCode >= 200 && res.statusCode < 300) return resolve(res.data);

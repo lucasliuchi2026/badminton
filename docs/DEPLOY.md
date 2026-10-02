@@ -85,11 +85,26 @@ jobs:
 ## 二、小程序端
 
 ### 1. 测试号
-- 申请：https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login 获取 AppID/AppSecret
+- 登录 https://mp.weixin.qq.com/debug/cgi-bin/sandbox?t=sandbox/login （微信扫码），第一屏就是「开发者ID(AppID)」，「开发者密码(AppSecret)」点生成/重置后显示明文
 - 小程序后台"开发管理-开发设置-服务器域名"：测试号无需配置合法域名，开发者工具勾选"不校验合法域名"即可
+- **三处 AppID 必须一致**：测试号页面 = 后端环境变量 `WECHAT_APPID` = `miniprogram/project.config.json` 的 `appid`。不一致时 `wx.login` 的 code 换不出 openid（微信报 `40029 invalid code`），表现就是登录 400、`/api/group` 401。
+- 验证 appid/secret 是否配对（不消耗配额，返回 `40029` 即配对成功、`40125` 即 secret 与该 appid 不匹配）：
+```bash
+curl "https://api.weixin.qq.com/sns/jscode2session?appid=<AppID>&secret=<AppSecret>&js_code=probe&grant_type=authorization_code"
+```
 
 ### 2. 导入项目
 - 下载微信开发者工具 → 导入项目 → 目录选 `miniprogram/` → AppID 填测试号 AppID（或选"测试号"游客模式）
+- 若项目已导入过：改完 `project.config.json` 的 `appid` 后，需在开发者工具「详情 → 基本信息 → AppID」重新设置或关项目重开，光点编译不会重载 appid
+
+### 2.1 登录后首页空白 / 控制台报 401 的排错顺序
+| 现象 | 原因 | 处理 |
+|---|---|---|
+| `GET /api/group 401`，随后自动恢复 | 后端重启/重新部署把 SQLite 清了，本地存的旧 token 对应的人已不存在 | 正常，`utils/request.js` 会丢旧 token、静默重登并重试一次 |
+| `POST /api/auth/login 400`，toast「微信登录失败: invalid code(errcode=40029)」 | 三处 AppID 不一致（多半是 `project.config.json` 里是占位 appid） | 对齐 appid 后重开项目 |
+| `POST /api/auth/login 400`，`errcode=40125` | `WECHAT_SECRET` 与 appid 不配对（测试号重置过密码） | 重新抄 AppSecret 更新 Render 环境变量并重新部署 |
+| `errcode=40164` IP 不在白名单 | 微信侧要求配 IP 白名单 | 实测 Render 新加坡出口 IP **不会**触发；若换到别家平台遇到，去后台取消 IP 白名单限制 |
+| 请求直接 fail、无状态码 | 未勾「不校验合法域名」或后端在休眠 | 本地设置勾上；先访问 `/api/health` 唤醒 |
 
 ### 3. 指向后端
 - 改 `miniprogram/config.js` 的 `BASE_URL`：本地联调 `http://127.0.0.1:8000`；部署后 `https://badminton-api-5k6c.onrender.com`
