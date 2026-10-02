@@ -15,13 +15,13 @@ services:
         value: /data/uploads
       - key: JWT_SECRET
         generateValue: true   # 部署时自动生成随机密钥
-      # 微信登录凭据：用蓝图重建时取消注释并填值（不要把这个文件里的 secret 提交进公开仓库）
-      # 当前线上服务已通过 Dashboard/API 配好这两个变量，无需重建
+      # 微信登录凭据：必须是「小程序」账号的 AppID/AppSecret（公众号测试号换不出小程序 code）
+      # 用蓝图重建时取消注释并填值（不要把真实 secret 提交进仓库）
       # - key: WECHAT_APPID
       #   value: wx????????????????
       # - key: WECHAT_SECRET
       #   value: ????????????????????????????????
-      # 正式号还需把 request/uploadFile 合法域名设为 https://badminton-api-5k6c.onrender.com（测试号免配）
+      # 另需在小程序后台「开发设置 → 服务器域名」把 request / uploadFile 域名设为 https://badminton-api-5k6c.onrender.com
     disk:
       name: badminton-data
       mountPath: /data

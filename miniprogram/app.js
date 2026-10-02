@@ -4,7 +4,7 @@ const api = require('./utils/request');
 function explain(msg) {
   const s = String(msg || '');
   if (/AppID 不一致/.test(s)) return s + '。处理：开发者工具「详情 → 基本信息」确认 AppID，或关项目重开（改 project.config.json 不会热生效）';
-  if (/40029/.test(s)) return '微信拒绝了 code（40029）：AppID 与 code 不匹配（多半是复制了公众号测试号的 AppID，而不是「小程序」那一栏的），或 code 已被用过';
+  if (/40029/.test(s)) return '微信拒绝了 code（40029）：这个 AppID 换不出小程序登录态。最常见是用公众号测试号（/debug/cgi-bin/sandbox 页面）的 AppID，或开发者工具没以该小程序管理员身份登录';
   if (/40125|40013/.test(s)) return 'AppID/AppSecret 不匹配（' + (s.match(/\d{5}/) || ['40125'])[0] + '）：测试号重置过密钥，需更新后端环境变量';
   if (/40164/.test(s)) return '后端出口 IP 不在微信白名单（40164）：到测试号后台清空 IP 白名单限制';
   if (/45009/.test(s)) return '登录接口调用超限（45009），稍后再试';
