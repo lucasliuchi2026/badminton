@@ -1,0 +1,33 @@
+<view class="card">
+  <view class="title">{{id ? '✏️ 编辑活动' : '＋ 发布羽毛球活动'}}</view>
+
+  <view class="field-label">活动类型</view>
+  <view class="row" style="gap:20rpx;margin-top:12rpx">
+    <view class="btn btn-mini {{f.type === 'paid' ? 'btn-lime' : 'btn-ghost'}}" style="flex:1;text-align:center" data-t="paid" bindtap="setType">⚡ 积分预付局</view>
+    <view class="btn btn-mini {{f.type === 'free' ? 'btn-lime' : 'btn-ghost'}}" style="flex:1;text-align:center" data-t="free" bindtap="setType">🆓 免费局</view>
+  </view>
+
+  <view class="field-label">活动名称</view>
+  <input class="field-input" placeholder="周六晚双打局" value="{{f.name}}" data-k="name" bindinput="onField"/>
+  <view class="field-label">场地</view>
+  <input class="field-input" placeholder="XX体育馆 3-5号场" value="{{f.venue}}" data-k="venue" bindinput="onField"/>
+  <view class="row" style="gap:20rpx">
+    <view style="flex:1"><view class="field-label">日期</view><picker mode="date" value="{{f.date}}" bindchange="onDate"><view class="field-input">{{f.date}}</view></picker></view>
+    <view style="flex:1"><view class="field-label">开始</view><picker mode="time" value="{{f.time_start}}" bindchange="onStart"><view class="field-input">{{f.time_start}}</view></picker></view>
+    <view style="flex:1"><view class="field-label">结束</view><picker mode="time" value="{{f.time_end}}" bindchange="onEnd"><view class="field-input">{{f.time_end}}</view></picker></view>
+  </view>
+  <view class="row" style="gap:20rpx">
+    <view style="flex:1"><view class="field-label">男生名额</view><input class="field-input" type="number" value="{{f.cap_m}}" data-k="cap_m" bindinput="onField"/></view>
+    <view style="flex:1"><view class="field-label">女生名额</view><input class="field-input" type="number" value="{{f.cap_f}}" data-k="cap_f" bindinput="onField"/></view>
+  </view>
+
+  <view wx:if="{{f.type === 'paid'}}">
+    <view class="row" style="gap:20rpx">
+      <view style="flex:1"><view class="field-label">♂ 每人消耗积分</view><input class="field-input" type="number" value="{{f.cost_m}}" data-k="cost_m" bindinput="onField"/></view>
+      <view style="flex:1"><view class="field-label">♀ 每人消耗积分</view><input class="field-input" type="number" value="{{f.cost_f}}" data-k="cost_f" bindinput="onField"/></view>
+    </view>
+    <view class="mini" style="margin-top:12rpx">报名即从本人点卡扣除；实际场地费由群主按AA事后多退少补调整</view>
+  </view>
+
+  <view class="btn btn-lime" bindtap="submit">{{id ? '保存修改' : '发布活动'}}</view>
+</view>

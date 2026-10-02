@@ -1,0 +1,51 @@
+<view class="seg">
+  <view class="s {{seg === 'rank' ? 'on' : ''}}" data-k="rank" bindtap="setSeg">排行榜</view>
+  <view class="s {{seg === 'record' ? 'on' : ''}}" data-k="record" bindtap="setSeg">历史对局</view>
+  <view wx:if="{{isOwner}}" class="s {{seg === 'input' ? 'on' : ''}}" data-k="input" bindtap="setSeg">录入比分👑</view>
+</view>
+
+<view wx:if="{{seg === 'rank'}}" class="card">
+  <view wx:for="{{board}}" wx:key="user_id" class="li">
+    <view class="row">
+      <view class="dot {{item.gender === 'M' ? 'dot-m' : 'dot-f'}}" style="border-radius:50%;width:52rpx;height:52rpx;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">{{item.initial}}</view>
+      <view style="margin-left:20rpx;font-weight:600">{{item.rank}}. {{item.nickname}}</view>
+    </view>
+    <view style="text-align:right">
+      <view style="font-size:32rpx;font-weight:900">{{item.points}}<text class="mini"> 分</text></view>
+      <view class="mini">{{item.wins}}胜 {{item.losses}}负</view>
+    </view>
+  </view>
+  <view wx:if="{{!board.length}}" class="mini" style="text-align:center;padding:30rpx">还没有对局记录，群主快去录分！</view>
+  <view class="mini" style="text-align:center;margin-top:16rpx">规则：胜 +25 / 负 +5，后端自动结算</view>
+</view>
+
+<view wx:if="{{seg === 'record'}}" class="card">
+  <view wx:for="{{games}}" wx:key="id" class="li">
+    <view>
+      <view style="font-weight:600">{{item.a}} <text class="pos">{{item.score_a}}</text> : <text class="neg">{{item.score_b}}</text> {{item.b}}</view>
+      <view class="mini">{{item.detail}}</view>
+    </view>
+    <view class="mini">{{item.date}}</view>
+  </view>
+  <view wx:if="{{!games.length}}" class="mini" style="text-align:center;padding:30rpx">暂无对局</view>
+</view>
+
+<view wx:if="{{seg === 'input' && isOwner}}" class="card">
+  <view class="title">📝 录入新对局</view>
+  <view class="sub">仅群主可提交；提交后自动结算积分</view>
+  <view class="field-label">选手A</view>
+  <picker range="{{users}}" range-key="nickname" data-k="aIdx" bindchange="onPick">
+    <view class="field-input">{{form.aIdx >= 0 ? users[form.aIdx].nickname : '请选择'}}</view>
+  </picker>
+  <view class="field-label">A 胜局数</view>
+  <input class="field-input" type="number" value="{{form.sa}}" data-k="sa" bindinput="onInput"/>
+  <view class="field-label">选手B</view>
+  <picker range="{{users}}" range-key="nickname" data-k="bIdx" bindchange="onPick">
+    <view class="field-input">{{form.bIdx >= 0 ? users[form.bIdx].nickname : '请选择'}}</view>
+  </picker>
+  <view class="field-label">B 胜局数</view>
+  <input class="field-input" type="number" value="{{form.sb}}" data-k="sb" bindinput="onInput"/>
+  <view class="field-label">小分（可选）</view>
+  <input class="field-input" placeholder="如 21-15, 18-21, 21-13" value="{{form.detail}}" data-k="detail" bindinput="onInput"/>
+  <view class="btn btn-lime" bindtap="submit">提交并更新排名</view>
+</view>

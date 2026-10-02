@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打球吗 · 小程序 UI 原型 v2</title>
+<style>
+  :root{
+    --navy:#0e1526; --navy2:#1b2a4a; --lime:#c6ff3d; --green:#16e87a;
+    --pink:#ff5c8a; --bg:#f4f6fb; --txt:#16202e; --sub:#7c8698;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:radial-gradient(1200px 600px at 20% -10%,#20315a 0%,#0b1120 55%);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:24px 0;min-height:100vh}
+  .phone{width:375px;height:740px;background:var(--bg);border-radius:36px;box-shadow:0 24px 60px rgba(0,0,0,.55),0 0 0 1px rgba(198,255,61,.15);overflow:hidden;display:flex;flex-direction:column;border:8px solid #05070c}
+  .navbar{height:64px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden}
+  .navbar::after{content:"";position:absolute;right:-30px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(198,255,61,.18),transparent 65%)}
+  .status-bar{height:24px;display:flex;justify-content:space-between;align-items:center;padding:0 14px;font-size:11px;opacity:.75}
+  .nav-title{flex:1;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;letter-spacing:2px}
+  .nav-back{position:absolute;left:16px;font-size:22px;cursor:pointer}
+  .pages{flex:1;overflow-y:auto;position:relative}
+  .page{display:none;padding:12px 12px 84px}
+  .page.active{display:block}
+  .tabbar{height:58px;background:#fff;border-top:1px solid #e7eaf2;display:flex}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;color:#9aa3b5;cursor:pointer;gap:2px;font-weight:500}
+  .tab .ico{font-size:19px;line-height:1}
+  .tab.on{color:var(--navy);font-weight:800}
+  .tab.on .ico{filter:drop-shadow(0 2px 4px rgba(22,232,122,.4))}
+  .card{background:#fff;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px rgba(14,21,38,.06)}
+  .badge{display:inline-block;font-size:10px;padding:3px 9px;border-radius:999px;margin-left:6px;vertical-align:2px;font-weight:600}
+  .badge.ongoing{background:var(--navy);color:var(--lime)}
+  .badge.upcoming{background:#e6f0ff;color:#2b6de8}
+  .badge.ended{background:#eceff5;color:#8b93a5}
+  .badge.paid{background:var(--navy);color:var(--lime)}
+  .badge.free{background:#e8fbf1;color:#0aa85a}
+  .row{display:flex;align-items:center}.between{justify-content:space-between}
+  .title{font-size:16px;font-weight:800;color:var(--txt)}
+  .sub{font-size:12px;color:var(--sub);margin-top:3px}
+  .mini{font-size:11px;color:#9aa3b5}
+  .bar-track{height:7px;background:#edf0f6;border-radius:4px;overflow:hidden;margin:4px 0}
+  .bar-fill{height:100%;border-radius:4px;transition:width .3s}
+  .bar-m{background:linear-gradient(90deg,#2b6de8,var(--green))}
+  .bar-f{background:linear-gradient(90deg,#ff8ab0,var(--pink))}
+  .btn{display:block;width:100%;padding:12px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--lime);font-size:15px;font-weight:800;letter-spacing:1px;cursor:pointer;margin-top:10px;box-shadow:0 6px 16px rgba(14,21,38,.35)}
+  .btn:active{transform:translateY(1px)}
+  .btn.lime{background:var(--lime);color:var(--navy);box-shadow:0 6px 16px rgba(198,255,61,.35)}
+  .btn.ghost{background:#fff;color:var(--navy);border:1.5px solid #d7dce8;box-shadow:none;font-weight:600}
+  .btn.small{width:auto;display:inline-block;padding:7px 16px;font-size:12px;margin:0}
+  .chip{display:flex;align-items:center;gap:5px;background:#f2f5fa;border-radius:999px;padding:4px 10px 4px 4px;font-size:12px;color:#3c465a}
+  .chip .dot{width:24px;height:24px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .dot.m{background:linear-gradient(135deg,#2b6de8,#16e87a)}
+  .dot.f{background:linear-gradient(135deg,#ff8ab0,#ff5c8a)}
+  .seg{display:flex;background:#e9edf5;border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .seg div{flex:1;text-align:center;padding:9px 0;font-size:13px;color:#7c8698;cursor:pointer;font-weight:600}
+  .seg div.on{background:var(--navy);color:var(--lime);border-radius:10px}
+  .list-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f3f8;font-size:13px}
+  .list-item:last-child{border-bottom:none}
+  .pos{color:#0aa85a;font-weight:700}.neg{color:#ff5c8a;font-weight:700}
+  .rank-no{width:28px;height:28px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;background:#eef1f7;color:#8b93a5;transform:rotate(-3deg)}
+  .rank-no.r1{background:var(--navy);color:var(--lime)}
+  .rank-no.r2{background:#c6cfdd;color:#39435a}
+  .rank-no.r3{background:#e8b07a;color:#5a3410}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+  .ph{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;cursor:pointer;background:linear-gradient(135deg,#22304f,#0e1526)}
+  input,select{width:100%;padding:11px;border:1.5px solid #dfe4ee;border-radius:10px;font-size:14px;margin-top:6px;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--green)}
+  label{font-size:12px;color:#5a6478;display:block;margin-top:12px;font-weight:600}
+  .mask{position:absolute;inset:0;background:rgba(5,7,12,.55);display:none;align-items:flex-end;z-index:50;backdrop-filter:blur(2px)}
+  .mask.show{display:flex}
+  .sheet{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:18px 16px 26px;max-height:82%;overflow-y:auto}
+  .sheet h4{font-size:17px;margin-bottom:4px;color:var(--txt)}
+  .toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);background:rgba(5,7,12,.85);color:var(--lime);padding:11px 24px;border-radius:12px;font-size:14px;z-index:99;display:none;font-weight:600}
+  .hint{font-size:11px;color:#5a6478;background:#fff;border-left:3px solid var(--green);border-radius:8px;padding:8px 10px;margin-bottom:12px}
+  .divider{height:1px;background:#f1f3f8;margin:14px 0}
+  h3.sec{font-size:14px;color:var(--txt);margin:16px 2px 8px;font-weight:800;letter-spacing:1px}
+  /* 群介绍 Hero */
+  .hero{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 70%,#24406e 100%);border-radius:20px;padding:18px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent 0 26px,rgba(198,255,61,.05) 26px 28px)}
+  .hero .club{font-size:20px;font-weight:900;letter-spacing:1px;position:relative}
+  .hero .slogan{font-style:italic;font-weight:800;color:var(--lime);font-size:14px;margin-top:4px;position:relative;letter-spacing:1px}
+  .hero .intro{font-size:11px;opacity:.8;margin-top:8px;line-height:1.6;position:relative}
+  .hero .stats{display:flex;gap:18px;margin-top:14px;position:relative}
+  .hero .stats .v{font-size:20px;font-weight:900;color:var(--lime)}
+  .hero .stats .k{font-size:10px;opacity:.7;margin-top:2px}
+  .avatars{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="navbar">
+    <div class="status-bar"><span>22:01</span><span>打球吗 · UI原型 v2</span><span>🔋 100%</span></div>
+    <div class="nav-title" style="position:relative"><span id="navBack" class="nav-back" style="display:none" onclick="tab('square',document.querySelector('[data-p=square]'))">‹</span><span id="navText">活动广场</span></div>
+  </div>
+  <div class="pages" id="pages">
+
+    <!-- ① 活动广场 -->
+    <div class="page active" id="p-square">
+      <div class="hero">
+        <div class="club">🏸 打球吗 <span style="font-size:11px;opacity:.6;font-weight:400">· 羽毛球群</span></div>
+        <div class="slogan">无羽伦比，扣杀生活！</div>
+        <div class="intro">周三 / 周六固定局 · 单打双打混练 · AA记账透明 · 新人欢迎来战。本群点卡仅内部记账，不涉及任何真实资金。</div>
+        <div class="stats">
+          <div><div class="v" id="stMembers">6</div><div class="k">群成员</div></div>
+          <div><div class="v" id="stActs">2</div><div class="k">近期活动</div></div>
+          <div><div class="v" id="stMatches">2</div><div class="k">积分赛场次</div></div>
+        </div>
+      </div>
+      <div class="hint">🟢 群主视角预览：普通成员无「管理」标签，且只看自己点卡流水。</div>
+      <div id="squareList"></div>
+    </div>
+
+    <!-- ② 活动详情 -->
+    <div class="page" id="p-detail"></div>
+
+    <!-- ③ 历史活动 -->
+    <div class="page" id="p-history">
+      <div class="card" style="padding:8px 14px">
+        <input id="histSearch" placeholder="🔍 搜索活动名称 / 场地" oninput="renderHistory()" style="border:none;padding:6px 0;font-size:14px">
+      </div>
+      <div id="historyList"></div>
+    </div>
+
+    <!-- ④ 积分赛 -->
+    <div class="page" id="p-league">
+      <div class="seg" id="leagueSeg">
+        <div class="on" onclick="leagueTab('rank',this)">排行榜</div>
+        <div onclick="leagueTab('record',this)">历史对局</div>
+        <div onclick="leagueTab('input',this)">录入比分👑</div>
+      </div>
+      <div id="leagueBody"></div>
+    </div>
+
+    <!-- ⑤ 个人中心 -->
+    <div class="page" id="p-me"></div>
+
+    <!-- ⑥ 群主管理后台 -->
+    <div class="page" id="p-admin">
+      <div class="hint">👑 仅群主可见。敏感操作后端统一校验 owner 角色。</div>
+      <div class="card">
+        <div class="title">⚙️ 快捷操作</div>
+        <div class="grid2" style="margin-top:12px">
+          <button class="btn lime small" style="width:100%" onclick="openSheet('sheetActivity')">＋ 发布活动</button>
+          <button class="btn lime small" style="width:100%" onclick="openSheet('sheetCard')">💳 调整点卡</button>
+          <button class="btn lime small" style="width:100%" onclick="openSheet('sheetScore')">🏸 录入比分</button>
+          <button class="btn lime small" style="width:100%" onclick="toast('原型：全员流水 = 各成员流水汇总视图')">📜 全员流水</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="title">👥 成员点卡一览</div>
+        <div id="adminCards"></div>
+      </div>
+      <div class="card">
+        <div class="title">✏️ 活动管理</div>
+        <div id="adminActs"></div>
+      </div>
+    </div>
+
+    <!-- 弹层：报名 -->
+    <div class="mask" id="sheetSignup"><div class="sheet">
+      <h4>报名参加</h4><p class="sub" id="signupActName"></p>
+      <p class="sub" id="signupCostNote"></p>
+      <label>性别</label>
+      <div class="seg" style="margin-top:6px"><div id="sgMale" class="on" onclick="sgGender='M';syncSeg(this,'sgFemale');updateCostNote()">男</div><div id="sgFemale" onclick="sgGender='F';syncSeg(this,'sgMale');updateCostNote()">女</div></div>
+      <label>为自己报名，或代他人报名（填昵称，逗号分隔）</label>
+      <input id="sgNames" placeholder="例如：小明, 小红">
+      <label>名额（含本人）</label>
+      <input id="sgCount" type="number" value="1" min="1" max="8" oninput="updateCostNote()">
+      <div class="divider"></div>
+      <div class="row between"><span class="mini">本人应付</span><b id="sgPay" style="font-size:16px;color:#0e1526">0 点卡</b></div>
+      <div class="mini" style="margin-top:4px">代报成员的点卡由群主核对后调整 · 后端校验余额与名额</div>
+      <button class="btn lime" onclick="doSignup()" id="sgBtn">确认报名</button>
+      <button class="btn ghost" onclick="closeSheets()">取消</button>
+    </div></div>
+
+    <!-- 弹层：群主发布活动 -->
+    <div class="mask" id="sheetActivity"><div class="sheet">
+      <h4>发布羽毛球活动</h4>
+      <label>活动类型</label>
+      <div class="seg" style="margin-top:6px"><div id="tyPaid" class="on" onclick="actType='paid';syncSeg(this,'tyFree');document.getElementById('costRow').style.display='block'">⚡ 积分预付局</div><div id="tyFree" onclick="actType='free';syncSeg(this,'tyPaid');document.getElementById('costRow').style.display='none'">🆓 免费局</div></div>
+      <label>活动名称</label><input placeholder="周六晚双打局">
+      <label>场地</label><input placeholder="XX体育馆 3-5号场">
+      <div class="grid2">
+        <div><label>日期</label><input type="date" value="2026-10-04"></div>
+        <div><label>时间</label><input type="time" value="19:00"></div>
+      </div>
+      <div class="grid2">
+        <div><label>男生名额</label><input type="number" value="6"></div>
+        <div><label>女生名额</label><input type="number" value="4"></div>
+      </div>
+      <div id="costRow">
+        <label>报名消耗积分（点卡，预付，男女可不同价）</label>
+        <div class="grid2">
+          <div><input type="number" value="30" placeholder="男生 ♂ 30 分/人"></div>
+          <div><input type="number" value="20" placeholder="女生 ♀ 20 分/人"></div>
+        </div>
+        <div class="mini" style="margin-top:6px;color:#7c8698">报名成功即从本人点卡扣除；实际场地费由群主按AA事后多退少补调整</div>
+      </div>
+      <button class="btn lime" onclick="closeSheets();toast('已发布（模拟）')">发布活动</button>
+      <button class="btn ghost" onclick="closeSheets()">取消</button>
+    </div></div>
+
+    <!-- 弹层：调整点卡 -->
+    <div class="mask" id="sheetCard"><div class="sheet">
+      <h4>调整成员点卡</h4><p class="sub">内部记账 · 无真实资金 · 仅群主操作</p>
+      <label>成员</label><select id="cdUser"></select>
+      <label>变动类型</label>
+      <div class="seg" style="margin-top:6px"><div id="cdPlus" class="on" onclick="cdType=1;syncSeg(this,'cdMinus')">＋ 记分</div><div id="cdMinus" onclick="cdType=-1;syncSeg(this,'cdPlus')">－ 扣减</div></div>
+      <label>数额</label><input id="cdVal" type="number" value="10" min="1">
+      <label>备注</label><input id="cdMemo" placeholder="活动费AA多退少补 / 补贴 / 纠错">
+      <button class="btn lime" onclick="doCard()">确认调整</button>
+      <button class="btn ghost" onclick="closeSheets()">取消</button>
+    </div></div>
+
+    <!-- 弹层：录入比分 -->
+    <div class="mask" id="sheetScore"><div class="sheet">
+      <h4>录入对局比分</h4><p class="sub">仅记局分，提交后自动结算积分排名</p>
+      <div class="grid2">
+        <div><label>选手A</label><select id="scA"></select></div>
+        <div><label>局数胜</label><input id="scAW" type="number" value="2"></div>
+      </div>
+      <div class="grid2">
+        <div><label>选手B</label><select id="scB"></select></div>
+        <div><label>局数胜</label><input id="scBW" type="number" value="1"></div>
+      </div>
+      <label>小分（可选）</label><input id="scDetail" placeholder="如 21-15, 18-21, 21-13">
+      <button class="btn lime" onclick="doScore()">提交并结算积分</button>
+      <button class="btn ghost" onclick="closeSheets()">取消</button>
+    </div></div>
+
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <div class="tab on" data-p="square" onclick="tab('square',this)"><span class="ico">🏟️</span>广场</div>
+    <div class="tab" data-p="history" onclick="tab('history',this)"><span class="ico">📅</span>历史</div>
+    <div class="tab" data-p="league" onclick="tab('league',this)"><span class="ico">🏸</span>积分赛</div>
+    <div class="tab" data-p="me" onclick="tab('me',this)"><span class="ico">👤</span>我的</div>
+    <div class="tab" data-p="admin" onclick="tab('admin',this)"><span class="ico">👑</span>管理</div>
+  </div>
+</div>
+<div class="toast" id="toastBox"></div>
+
+<script>
+/* ===== 模拟数据 ===== */
+const me = { id:1, name:'张三', role:'owner' };
+const users = [
+  { id:1, name:'张三', gender:'M', role:'owner',  card:120 },
+  { id:2, name:'李四', gender:'M', role:'member', card:60 },
+  { id:3, name:'王五', gender:'F', role:'member', card:45 },
+  { id:4, name:'赵六', gender:'M', role:'member', card:30 },
+  { id:5, name:'陈七', gender:'F', role:'member', card:80 },
+  { id:6, name:'刘八', gender:'M', role:'member', card:15 },
+];
+/* type: 'paid' 积分预付局（报名扣分，男女可不同价） | 'free' 免费局; costM/costF=男女每人消耗积分 */
+let acts = [
+  { id:1, name:'周六晚双打局', venue:'奥体中心 3-5号场', date:'2026-10-04', time:'19:00', status:'upcoming', type:'paid', costM:30, costF:20, capM:6, capF:4, signup:[{u:1,g:'M'},{u:2,g:'M'},{u:4,g:'M'},{u:3,g:'F'},{u:5,g:'F'}] },
+  { id:2, name:'周中单打拉练', venue:'林大体育馆 2号场', date:'2026-10-01', time:'20:00', status:'ongoing', type:'free', costM:0, costF:0, capM:4, capF:2, signup:[{u:2,g:'M'},{u:6,g:'M'},{u:5,g:'F'}] },
+  { id:3, name:'国庆友谊赛', venue:'奥体中心 1-2号场', date:'2026-10-01', time:'14:00', status:'ended', type:'paid', costM:40, costF:30, capM:8, capF:6, signup:[{u:1,g:'M'},{u:3,g:'F'}] },
+  { id:4, name:'9月底例活动', venue:'林大体育馆', date:'2026-09-27', time:'19:00', status:'ended', type:'free', costM:0, costF:0, capM:6, capF:4, signup:[] },
+];
+let league = [
+  { u:2, pts:120, win:5, lose:1 }, { u:1, pts:100, win:4, lose:2 },
+  { u:5, pts:95,  win:4, lose:1 }, { u:3, pts:60,  win:2, lose:3 },
+  { u:4, pts:35,  win:1, lose:4 },  { u:6, pts:20,  win:0, lose:5 },
+];
+let matches = [
+  { d:'2026-09-27', a:'李四', b:'张三', sa:2, sb:1, note:'21-15, 18-21, 21-13' },
+  { d:'2026-09-20', a:'陈七', b:'王五', sa:2, sb:0, note:'21-11, 21-17' },
+];
+let cardLog = [
+  { u:1, d:'2026-09-27', delta:-30, memo:'「周六晚双打局」报名预付积分' },
+  { u:1, d:'2026-09-25', delta:+50, memo:'群主记分（活动补贴退回）' },
+  { u:1, d:'2026-09-01', delta:+100, memo:'初始记账' },
+];
+
+/* ===== 路由 ===== */
+const titles = { square:'活动广场', detail:'活动详情', history:'历史活动', league:'积分赛', me:'个人中心', admin:'管理后台' };
+function tab(p, el){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on')); if(el) el.classList.add('on'); go(p); }
+function go(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  document.getElementById('navText').textContent = titles[p];
+  document.getElementById('navBack').style.display = p==='detail'?'block':'none';
+  document.getElementById('pages').scrollTop = 0;
+  if(p==='square') renderSquare();
+  if(p==='history') renderHistory();
+  if(p==='league'){ const on=document.querySelector('#leagueSeg .on'); leagueTab(on.textContent.includes('排行')?'rank':on.textContent.includes('历史')?'record':'input'); }
+  if(p==='me') renderMe();
+  if(p==='admin') renderAdmin();
+}
+function toast(t){ const b=document.getElementById('toastBox'); b.textContent=t; b.style.display='block'; setTimeout(()=>b.style.display='none',1800); }
+function openSheet(id){ closeSheets(); document.getElementById(id).classList.add('show'); }
+function closeSheets(){ document.querySelectorAll('.mask').forEach(m=>m.classList.remove('show')); }
+function syncSeg(el, otherId){ el.classList.add('on'); document.getElementById(otherId).classList.remove('on'); }
+function typeBadge(a){ return a.type==='paid' ? (a.costM===a.costF ? `<span class="badge paid">⚡积分局·${a.costM}分/人</span>` : `<span class="badge paid">⚡积分局·♂${a.costM} ♀${a.costF}分/人</span>`) : '<span class="badge free">🆓免费局</span>'; }
+function statusBadge(s){ return s==='ongoing'?'<span class="badge ongoing">进行中</span>':s==='upcoming'?'<span class="badge upcoming">未开始</span>':'<span class="badge ended">已结束</span>'; }
+
+/* ===== ① 活动广场 ===== */
+function renderSquare(){
+  document.getElementById('stMembers').textContent = users.length;
+  const list = acts.filter(a=>a.status!=='ended');
+  document.getElementById('stActs').textContent = list.length;
+  document.getElementById('stMatches').textContent = matches.length;
+  document.getElementById('squareList').innerHTML = list.map(a=>{
+    const m = a.signup.filter(s=>s.g==='M').length, f = a.signup.filter(s=>s.g==='F').length;
+    return `<div class="card" onclick="openDetail(${a.id})" style="cursor:pointer">
+      <div class="row between"><span class="title">${a.name}${statusBadge(a.status)}</span><span class="mini" style="font-weight:800;color:#16202e">${a.time}</span></div>
+      <div style="margin-top:6px">${typeBadge(a)}</div>
+      <div class="sub" style="margin-top:8px">📍 ${a.venue}　🗓 ${a.date}</div>
+      <div class="row between" style="margin-top:10px;font-size:12px;color:#5a6478;font-weight:700">
+        <span>♂ ${m}/${a.capM}</span><span>♀ ${f}/${a.capF}</span><span>共 ${a.signup.length} 人</span>
+      </div>
+      <div class="row" style="gap:10px">
+        <div style="flex:1"><div class="bar-track"><div class="bar-fill bar-m" style="width:${m/a.capM*100}%"></div></div></div>
+        <div style="flex:1"><div class="bar-track"><div class="bar-fill bar-f" style="width:${f/a.capF*100}%"></div></div></div>
+      </div>
+      <div class="mini" style="margin-top:8px">${a.status==='ongoing'?'🔴 火热进行中 · 点击查看战况 ›':'点击卡片查看详情并报名 ›'}</div>
+    </div>`;
+  }).join('') || '<p class="mini" style="text-align:center;padding:40px">暂无有效活动</p>';
+}
+
+/* ===== ② 活动详情 ===== */
+let curAct = null;
+function openDetail(id){
+  curAct = acts.find(a=>a.id===id);
+  const a = curAct, ended = a.status==='ended';
+  const men = a.signup.filter(s=>s.g==='M'), women = a.signup.filter(s=>s.g==='F');
+  const chip = s=>{ const u=users.find(x=>x.id===s.u); return `<span class="chip"><span class="dot ${s.g==='M'?'m':'f'}">${u.name[0]}</span>${u.name}${u.id===me.id?'（我）':''}${u.role==='owner'?' 👑':''}</span>`; };
+  document.getElementById('p-detail').innerHTML = `
+    <div class="hero">
+      <div class="club" style="font-size:18px">${a.name}</div>
+      <div style="margin-top:6px">${typeBadge(a)}${statusBadge(a.status)}</div>
+      <div class="intro">📍 ${a.venue}<br>🗓 ${a.date} ${a.time} — 21:00<br>${a.type==='paid'?'⚡ 报名预付：男生 '+a.costM+' 点卡/人 · 女生 '+a.costF+' 点卡/人，群主按实际场地费AA多退少补':'🆓 免费报名，场地费由群主统一记账'}</div>
+    </div>
+    <div class="card">
+      <div class="row between"><span class="title">♂ 男生报名 ${men.length}/${a.capM}</span></div>
+      <div class="avatars">${men.map(chip).join('')||'<span class="mini">暂无</span>'}</div>
+      <div class="divider"></div>
+      <div class="row between"><span class="title">♀ 女生报名 ${women.length}/${a.capF}</span></div>
+      <div class="avatars">${women.map(chip).join('')||'<span class="mini">暂无</span>'}</div>
+    </div>
+    <div class="card">
+      <div class="title">📸 活动素材</div>
+      <div class="sub">照片 ${ended?6:2} 张 · 视频 ${ended?2:0} 个</div>
+      <div class="gallery">${ended?'🏸📷🎬🏸📷🎬':'📷🎬'}</div>
+      <div class="grid2" style="margin-top:10px">
+        <button class="btn ghost small" style="width:100%" onclick="toast('原型：wx.chooseMedia → POST /api/activities/${a.id}/media')">📷 上传照片</button>
+        <button class="btn ghost small" style="width:100%" onclick="toast('原型：wx.chooseMedia → POST /api/activities/${a.id}/media')">🎬 上传视频</button>
+      </div>
+      <button class="btn ghost" onclick="toast('回顾文案占位：后续接入大模型，模板兜底保留接口')">✨ 生成活动回顾</button>
+    </div>
+    ${ended?'':`<button class="btn lime" onclick="openSheet('sheetSignup');prepSignup(${a.id})">${a.type==='paid'?'⚡ 预付积分报名（♂'+a.costM+' / ♀'+a.costF+'）':'🙋 免费报名 / 代报名'}</button>`}
+  `;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  go('detail');
+}
+function prepSignup(id){
+  const a = acts.find(x=>x.id===id);
+  document.getElementById('signupActName').textContent = `${a.name} · ${a.date} ${a.time}`;
+  document.getElementById('sgCount').value = 1;
+  updateCostNote();
+}
+function updateCostNote(){
+  const a = curAct; if(!a) return;
+  const n = Math.max(1, parseInt(document.getElementById('sgCount').value)||1);
+  const unit = a.type==='paid' ? (sgGender==='M'?a.costM:a.costF) : 0;
+  const pay = unit*n;
+  document.getElementById('sgPay').textContent = pay + ' 点卡';
+  document.getElementById('signupCostNote').innerHTML = a.type==='paid'
+    ? `⚡ 积分局：<b>${sgGender==='M'?'男生':'女生'}</b>每人预付 <b>${unit}</b> 点卡 · 我的余额 ${users.find(u=>u.id===me.id).card}`
+    : '🆓 免费局：报名不消耗点卡';
+  document.getElementById('sgBtn').textContent = a.type==='paid' ? `确认报名并扣除 ${pay} 点卡` : '确认报名';
+}
+let sgGender='M';
+function doSignup(){
+  const a = curAct; const n = Math.max(1, parseInt(document.getElementById('sgCount').value)||1);
+  const extra = document.getElementById('sgNames').value.split(/[,，]/).filter(x=>x.trim());
+  const cur = a.signup.filter(s=>s.g===sgGender).length;
+  const add = Math.min(n, (sgGender==='M'?a.capM:a.capF) - cur);
+  if(add<=0){ toast('该性别名额已满'); return; }
+  if(a.type==='paid'){
+    const unit = sgGender==='M'?a.costM:a.costF;
+    const pay = unit*add, my = users.find(u=>u.id===me.id);
+    if(my.card < pay){ toast(`点卡不足：需 ${pay}，余额 ${my.card}，请联系群主记分`); return; }
+    my.card -= pay;
+    cardLog.unshift({ u:me.id, d:a.date, delta:-pay, memo:`「${a.name}」报名预付积分 ×${add}人（${sgGender==='M'?'♂':'♀'}${unit}分/人）` });
+  }
+  a.signup.push({u:me.id,g:sgGender});
+  for(let i=1;i<add;i++) a.signup.push({u:users[(i+3)%users.length].id, g:sgGender});
+  closeSheets();
+  toast(`报名成功 +${add}${a.type==='paid'?'，已扣 '+(sgGender==='M'?a.costM:a.costF)*add+' 点卡':''}${extra.length?'（代报：'+extra.join('、')+'）':''}`);
+  openDetail(a.id);
+}
+
+/* ===== ③ 历史活动 ===== */
+function renderHistory(){
+  const kw = document.getElementById('histSearch').value.trim();
+  const list = acts.filter(a=>a.status==='ended' && (!kw || a.name.includes(kw) || a.venue.includes(kw)));
+  document.getElementById('historyList').innerHTML = list.map(a=>`
+    <div class="card" onclick="openDetail(${a.id})" style="cursor:pointer">
+      <div class="row between"><span class="title">${a.name}${statusBadge(a.status)}</span><span class="mini">${a.date}</span></div>
+      <div style="margin-top:6px">${typeBadge(a)}</div>
+      <div class="sub" style="margin-top:6px">📍 ${a.venue} · ${a.signup.length} 人参与 · 📷${Math.min(6,a.signup.length+2)} 🎬${a.signup.length?2:0}</div>
+      <div class="mini" style="margin-top:6px">查看旧素材与活动回顾 ›</div>
+    </div>`).join('') || '<p class="mini" style="text-align:center;padding:30px">没有匹配的历史活动</p>';
+}
+
+/* ===== ④ 积分赛 ===== */
+function leagueTab(k, el){
+  if(el){ document.querySelectorAll('#leagueSeg div').forEach(d=>d.classList.remove('on')); el.classList.add('on'); }
+  const body = document.getElementById('leagueBody');
+  if(k==='rank'){
+    league.sort((x,y)=>y.pts-x.pts);
+    body.innerHTML = `<div class="card" style="padding:6px 14px">` + league.map((r,i)=>{
+      const u = users.find(x=>x.id===r.u);
+      return `<div class="list-item">
+        <div class="row" style="gap:10px"><span class="rank-no r${i+1}">${i+1}</span><span class="dot ${u.gender==='M'?'m':'f'}" style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700">${u.name[0]}</span><span style="font-weight:600">${u.name}${u.role==='owner'?' 👑':''}</span></div>
+        <div style="text-align:right"><div style="font-size:16px;font-weight:900;color:#16202e">${r.pts}<span style="font-size:10px;color:#7c8698"> 分</span></div><div class="mini">${r.win}胜 ${r.lose}负</div></div>
+      </div>`;
+    }).join('') + `</div><p class="mini" style="text-align:center">规则：胜 +25 / 负 +5（每局净胜分另计，后端结算）</p>`;
+  }
+  if(k==='record'){
+    body.innerHTML = `<div class="card">` + matches.map(m=>`
+      <div class="list-item"><div><div style="font-weight:600">${m.a} <b class="pos">${m.sa}</b> : <b class="neg">${m.sb}</b> ${m.b}</div><div class="mini">${m.note}</div></div><div class="mini">${m.d}</div></div>`).join('') + `</div>`;
+  }
+  if(k==='input'){
+    const opts = `<option value="">请选择</option>` + users.map(u=>`<option>${u.name}</option>`).join('');
+    body.innerHTML = `<div class="card">
+      <div class="title">📝 录入新对局</div><div class="sub">仅群主可提交；提交后自动结算积分</div>
+      <div class="grid2" style="margin-top:6px">
+        <div><label>选手A</label><select id="inA">${opts}</select></div>
+        <div><label>A 局胜数</label><input id="inAW" type="number" value="2"></div>
+      </div>
+      <div class="grid2">
+        <div><label>选手B</label><select id="inB">${opts}</select></div>
+        <div><label>B 局胜数</label><input id="inBW" type="number" value="1"></div>
+      </div>
+      <button class="btn lime" onclick="submitMatch()">提交并更新排名</button>
+    </div>`;
+  }
+}
+function submitMatch(){
+  const a=document.getElementById('inA').value, b=document.getElementById('inB').value;
+  const sa=+document.getElementById('inAW').value, sb=+document.getElementById('inBW').value;
+  if(!a||!b||a===b){ toast('请选择两名不同选手'); return; }
+  if(sa===sb){ toast('平局无效，需分出胜负'); return; }
+  matches.unshift({ d:'2026-10-01', a, b, sa, sb, note:'' });
+  league.forEach(r=>{ const u=users.find(x=>x.id===r.u);
+    if(u.name===a){ r.pts += sa>sb?25:5; sa>sb?r.win++:r.lose++; }
+    if(u.name===b){ r.pts += sb>sa?25:5; sb>sa?r.win++:r.lose++; }
+  });
+  toast(`已结算：${a} vs ${b}，排名已更新`);
+  document.querySelectorAll('#leagueSeg div').forEach((d,i)=>d.classList.toggle('on',i===0));
+  leagueTab('rank');
+}
+
+/* ===== ⑤ 个人中心 ===== */
+function renderMe(){
+  const my = users.find(u=>u.id===me.id);
+  const mine = acts.filter(a=>a.signup.some(s=>s.u===me.id));
+  document.getElementById('p-me').innerHTML = `
+    <div class="hero" style="margin-bottom:14px">
+      <div class="row between" style="position:relative">
+        <div><div class="club" style="font-size:18px">${my.name} ${my.role==='owner'?'👑群主':''}</div><div class="intro" style="margin-top:6px">微信已授权 · 男 · 加入活动 ${mine.length} 场</div></div>
+        <div style="text-align:right"><div class="club" style="font-size:32px;color:var(--lime)">${my.card}</div><div class="intro" style="margin-top:0">点卡余额<br>内部记账</div></div>
+      </div>
+    </div>
+    <h3 class="sec">📜 我的点卡流水</h3>
+    <div class="card">
+      ${cardLog.filter(c=>c.u===me.id).map(c=>`<div class="list-item"><div><div style="font-weight:600">${c.memo}</div><div class="mini">${c.d}</div></div><div class="${c.delta>0?'pos':'neg'}">${c.delta>0?'+':''}${c.delta}</div></div>`).join('')}
+      <p class="mini" style="margin-top:8px">仅群主可调整余额；余额不足时无法报名积分局</p>
+    </div>
+    <h3 class="sec">🙋 我报名的活动（${mine.length}）</h3>
+    <div class="card">${mine.map(a=>`<div class="list-item"><div><div style="font-weight:600">${a.name}</div><div class="mini">${a.date} ${a.time} · ${a.venue}</div></div>${statusBadge(a.status)}</div>`).join('')}</div>
+    <button class="btn ghost" onclick="toast('原型：退出登录')">退出登录</button>`;
+}
+
+/* ===== ⑥ 管理后台 ===== */
+function renderAdmin(){
+  document.getElementById('adminCards').innerHTML = users.map(u=>`
+    <div class="list-item"><div class="row" style="gap:8px"><span class="dot ${u.gender==='M'?'m':'f'}" style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700">${u.name[0]}</span><span style="font-weight:600">${u.name}</span></div>
+    <div class="row" style="gap:10px"><span style="font-weight:800">${u.card} 点</span><button class="btn ghost small" onclick="preCard(${u.id})">调整</button></div></div>`).join('');
+  document.getElementById('cdUser').innerHTML = users.map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+  document.getElementById('adminActs').innerHTML = acts.map(a=>`
+    <div class="list-item"><div><div style="font-weight:600">${a.name}</div><div class="mini">${a.date} · ${a.venue} · ${a.type==='paid'?'⚡♂'+a.costM+'/♀'+a.costF+'分':'🆓免费'}</div></div>
+    <div class="row" style="gap:8px">${statusBadge(a.status)}<button class="btn ghost small" onclick="toast('原型：编辑活动')">编辑</button></div></div>`).join('');
+}
+function preCard(id){ document.getElementById('cdUser').value=id; openSheet('sheetCard'); }
+let cdType=1;
+function doCard(){
+  const id=+document.getElementById('cdUser').value, v=(+document.getElementById('cdVal').value||0)*cdType;
+  const memo=document.getElementById('cdMemo').value||'群主调整';
+  if(!v){ toast('数额无效'); return; }
+  users.find(u=>u.id===id).card += v;
+  cardLog.unshift({u:id, d:'2026-10-01', delta:v, memo});
+  closeSheets(); toast(`${users.find(u=>u.id===id).name} 点卡 ${v>0?'+':''}${v}，已记流水`); renderAdmin();
+}
+let actType='paid';
+function doScore(){
+  const a=document.getElementById('scA').value, b=document.getElementById('scB').value;
+  const sa=+document.getElementById('scAW').value, sb=+document.getElementById('scBW').value;
+  if(!a||!b||a===b||sa===sb){ toast('请选两人且分出胜负'); return; }
+  matches.unshift({ d:'2026-10-01', a, b, sa, sb, note:document.getElementById('scDetail').value });
+  closeSheets(); toast('比分已结算，排行榜已更新'); tab('league', document.querySelector('[data-p=league]'));
+}
+document.querySelectorAll('.mask').forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) closeSheets(); }));
+renderSquare();
+</script>
+</body>
+</html>

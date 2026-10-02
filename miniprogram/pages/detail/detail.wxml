@@ -1,0 +1,67 @@
+<view wx:if="{{a}}">
+  <view class="hero">
+    <view class="club" style="font-size:36rpx">{{a.name}}</view>
+    <view style="margin-top:12rpx">
+      <text class="badge {{a.type === 'paid' ? 'badge-dark' : 'badge-green'}}">{{a.typeText}}</text>
+      <text class="badge {{a.status === 'ongoing' ? 'badge-dark' : a.status === 'upcoming' ? 'badge-blue' : 'badge-gray'}}">{{a.status === 'ended' ? '已结束' : a.status === 'ongoing' ? '进行中' : '未开始'}}</text>
+    </view>
+    <view class="intro">📍 {{a.venue}}</view>
+    <view class="intro">🗓 {{a.date}} {{a.time_start}}—{{a.time_end}}</view>
+    <view class="intro">{{a.type === 'paid' ? '⚡ 报名预付：男 ' + a.cost_m + ' / 女 ' + a.cost_f + ' 点卡每人，群主按实际场地费AA多退少补' : '🆓 免费报名，场地费由群主统一记账'}}</view>
+  </view>
+
+  <view class="card">
+    <view class="title">♂ 男生报名 {{a.signed_m}}/{{a.cap_m}}</view>
+    <view><text wx:for="{{a.registrations_m}}" wx:key="id" class="chip">
+      <text class="dot dot-m">{{item.initial}}</text>{{item.member_name}}{{item.paid ? '（扣' + item.paid + '分）' : ''}}{{item.creator_id === me.id && !item.is_self ? ' · 代报' : ''}}
+      <text wx:if="{{item.creator_id === me.id || isOwner}}" class="mini" style="margin-left:8rpx;color:#ff5c8a" bindtap="cancelReg" data-rid="{{item.id}}">✕</text>
+    </text><text wx:if="{{!a.registrations_m.length}}" class="mini">暂无</text></view>
+    <view class="title" style="margin-top:28rpx">♀ 女生报名 {{a.signed_f}}/{{a.cap_f}}</view>
+    <view><text wx:for="{{a.registrations_f}}" wx:key="id" class="chip">
+      <text class="dot dot-f">{{item.initial}}</text>{{item.member_name}}{{item.paid ? '（扣' + item.paid + '分）' : ''}}{{item.creator_id === me.id && !item.is_self ? ' · 代报' : ''}}
+      <text wx:if="{{item.creator_id === me.id || isOwner}}" class="mini" style="margin-left:8rpx;color:#ff5c8a" bindtap="cancelReg" data-rid="{{item.id}}">✕</text>
+    </text><text wx:if="{{!a.registrations_f.length}}" class="mini">暂无</text></view>
+  </view>
+
+  <view class="card">
+    <view class="title">📸 活动素材（{{a.media.length}}）</view>
+    <view wx:if="{{a.media.length}}" class="row" style="flex-wrap:wrap;gap:12rpx;margin-top:16rpx">
+      <view wx:for="{{a.media}}" wx:key="id" style="width:200rpx;height:200rpx;border-radius:20rpx;overflow:hidden;background:#22304f">
+        <image wx:if="{{item.kind === 'photo'}}" src="{{item.url}}" mode="aspectFill" style="width:200rpx;height:200rpx" data-url="{{item.url}}" bindtap="previewImg"/>
+        <video wx:else src="{{item.url}}" style="width:200rpx;height:200rpx"/>
+      </view>
+    </view>
+    <view class="row" style="gap:20rpx;margin-top:20rpx">
+      <view class="btn btn-ghost btn-mini" style="flex:1;text-align:center" data-kind="photo" bindtap="chooseMedia">📷 上传照片</view>
+      <view class="btn btn-ghost btn-mini" style="flex:1;text-align:center" data-kind="video" bindtap="chooseMedia">🎬 上传视频</view>
+    </view>
+    <view class="btn btn-ghost" bindtap="genReview">✨ 生成活动回顾</view>
+  </view>
+
+  <view wx:if="{{a.status !== 'ended' && a.status !== 'cancelled'}}">
+    <view class="btn btn-lime" bindtap="toggleSignup">{{showSignup ? '收起报名面板' : a.signupBtn}}</view>
+    <view wx:if="{{showSignup}}" class="card">
+      <view class="sub">⚡ 积分局：{{sgGender === 'M' ? '男生' : '女生'}}每人预付 {{unit}} 点卡 · 我的余额 {{me.card_balance}}</view>
+      <view class="field-label">性别（占用哪个性别名额）</view>
+      <view class="row" style="gap:20rpx;margin-top:12rpx">
+        <view class="btn btn-mini {{sgGender === 'M' ? 'btn-lime' : 'btn-ghost'}}" data-g="M" bindtap="setGender">男 ♂</view>
+        <view class="btn btn-mini {{sgGender === 'F' ? 'btn-lime' : 'btn-ghost'}}" data-g="F" bindtap="setGender">女 ♀</view>
+      </view>
+      <view class="field-label">名额（含本人）</view>
+      <input class="field-input" type="number" value="{{slots}}" bindinput="onSlots"/>
+      <view class="field-label">代他人报名昵称（逗号分隔，数量 = 名额-1）</view>
+      <input class="field-input" placeholder="例如：小明, 小红" value="{{names}}" bindinput="onNames"/>
+      <view class="li" style="margin-top:24rpx"><text>本人应付</text><text style="font-size:34rpx;font-weight:800">{{pay}} 点卡</text></view>
+      <view class="mini">代报成员的积分由群主核对后调整 · 名额与余额由后端校验</view>
+      <view class="btn btn-lime" bindtap="doSignup">{{a.type === 'paid' ? '确认报名并扣除 ' + pay + ' 点卡' : '确认报名'}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{isOwner && a.status !== 'ended'}}" class="card">
+    <view class="title">👑 群主操作</view>
+    <view class="row" style="gap:20rpx;margin-top:16rpx">
+      <view class="btn btn-ghost btn-mini" style="flex:1;text-align:center" bindtap="editAct">✏️ 编辑活动</view>
+      <view class="btn btn-ghost btn-mini" style="flex:1;text-align:center" bindtap="endAct">🏁 结束活动</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,62 @@
+<view class="hint">👑 仅群主可见。发布活动 / 调整点卡 / 修改群介绍；录分请去「积分赛」标签页。</view>
+
+<view class="card">
+  <view class="title">⚙️ 快捷操作</view>
+  <view class="row" style="gap:20rpx;margin-top:24rpx">
+    <view class="btn btn-lime btn-mini" style="flex:1;text-align:center" bindtap="createAct">＋ 发布活动</view>
+    <view class="btn btn-lime btn-mini" style="flex:1;text-align:center" bindtap="toggleCfg">📣 群介绍</view>
+  </view>
+</view>
+
+<view wx:if="{{showCfg}}" class="card">
+  <view class="title">📣 群配置（首页 Hero 展示）</view>
+  <view class="field-label">群名称</view>
+  <input class="field-input" value="{{cfg.club_name}}" data-k="club_name" bindinput="onCfg"/>
+  <view class="field-label">Slogan</view>
+  <input class="field-input" value="{{cfg.slogan}}" data-k="slogan" bindinput="onCfg"/>
+  <view class="field-label">群介绍</view>
+  <textarea class="field-input" style="width:100%;min-height:140rpx" value="{{cfg.intro}}" data-k="intro" bindinput="onCfg"/>
+  <view class="btn btn-lime" bindtap="saveCfg">保存群配置</view>
+</view>
+
+<view class="card">
+  <view class="title">👥 成员点卡一览（内部记账）</view>
+  <view wx:for="{{users}}" wx:key="id" class="li">
+    <view class="row">
+      <view class="dot {{item.gender === 'M' ? 'dot-m' : 'dot-f'}}" style="border-radius:50%;width:52rpx;height:52rpx;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">{{item.initial}}</view>
+      <view style="margin-left:20rpx;font-weight:600">{{item.nickname}}{{item.role === 'owner' ? ' 👑' : ''}}</view>
+    </view>
+    <view class="row" style="gap:16rpx">
+      <text style="font-weight:800">{{item.card_balance}} 点</text>
+      <view class="btn btn-ghost btn-mini" data-idx="{{index}}" bindtap="openCardForm">调整</view>
+      <view class="btn btn-ghost btn-mini" data-uid="{{item.id}}" data-idx="{{index}}" bindtap="viewLogs">流水</view>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{showCardForm}}" class="card">
+  <view class="title">💳 调整「{{users[cardUserIdx].nickname}}」点卡</view>
+  <view class="mini" style="margin-top:8rpx">当前余额 {{users[cardUserIdx].card_balance}} · 内部记账无真实资金 · 不允许扣成负数</view>
+  <view class="field-label">成员</view>
+  <picker range="{{users}}" range-key="nickname" value="{{cardUserIdx}}" bindchange="onCardUser">
+    <view class="field-input">{{users[cardUserIdx].nickname}}</view>
+  </picker>
+  <view class="field-label">数额</view>
+  <input class="field-input" type="number" value="{{cardDelta}}" bindinput="onCardDelta"/>
+  <view class="field-label">备注（AA多退少补 / 补贴 / 纠错）</view>
+  <input class="field-input" placeholder="如：国庆场地费AA" value="{{cardMemo}}" bindinput="onCardMemo"/>
+  <view class="row" style="gap:20rpx;margin-top:24rpx">
+    <view class="btn btn-lime" style="flex:1" bindtap="plusCard">＋ 记分</view>
+    <view class="btn" style="flex:1" bindtap="minusCard">－ 扣减</view>
+  </view>
+  <view class="btn btn-ghost" bindtap="closeCardForm" data-x="0">取消</view>
+</view>
+
+<view class="card">
+  <view class="title">✏️ 活动管理（近期）</view>
+  <view wx:for="{{acts}}" wx:key="id" class="li">
+    <view><view style="font-weight:600">{{item.name}}</view><view class="mini">{{item.date}} · {{item.venue}} · {{item.type === 'paid' ? '⚡♂' + item.cost_m + '/♀' + item.cost_f + '分' : '🆓免费'}}</view></view>
+    <view class="btn btn-ghost btn-mini" data-id="{{item.id}}" bindtap="editAct">编辑</view>
+  </view>
+  <view wx:if="{{!acts.length}}" class="mini" style="text-align:center;padding:20rpx">暂无进行中的活动</view>
+</view>

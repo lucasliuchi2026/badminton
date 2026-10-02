@@ -1,0 +1,40 @@
+<view wx:if="{{me}}" class="hero">
+  <view class="row between">
+    <view>
+      <view class="club" style="font-size:36rpx">{{me.nickname}} {{me.role === 'owner' ? '👑群主' : ''}}</view>
+      <view class="intro" style="margin-top:12rpx">{{me.gender === 'M' ? '男' : '女'}} · 参与活动 {{mine.length}} 场
+        <text class="mini" style="color:#c6ff3d;margin-left:16rpx" bindtap="toggleEdit">✏️ 改名</text></view>
+    </view>
+    <view style="text-align:right">
+      <view class="club" style="font-size:64rpx;color:#c6ff3d">{{me.card_balance}}</view>
+      <view class="intro">点卡余额 · 内部记账</view>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{editing}}" class="card">
+  <view class="field-label">昵称</view>
+  <input class="field-input" value="{{nickname}}" bindinput="onNick"/>
+  <view class="btn btn-lime" bindtap="saveNick">保存</view>
+</view>
+
+<view wx:if="{{me && me.role === 'owner'}}" class="btn btn-lime" style="margin-top:24rpx" bindtap="goAdmin">👑 进入群主管理后台</view>
+
+<view class="card">
+  <view class="title">📜 我的点卡流水</view>
+  <view wx:for="{{logs}}" wx:key="id" class="li">
+    <view><view style="font-weight:600">{{item.memo}}</view><view class="mini">{{item.created_at}}</view></view>
+    <view class="{{item.delta > 0 ? 'pos' : 'neg'}}">{{item.delta > 0 ? '+' : ''}}{{item.delta}}</view>
+  </view>
+  <view wx:if="{{!logs.length}}" class="mini" style="text-align:center;padding:20rpx">暂无流水</view>
+  <view class="mini" style="margin-top:16rpx">仅群主可调整余额 · 本系统无真实资金</view>
+</view>
+
+<view class="card">
+  <view class="title">🙋 我报名的活动（{{mine.length}}）</view>
+  <view wx:for="{{mine}}" wx:key="activity_id" class="li">
+    <view><view style="font-weight:600">{{item.name}}</view><view class="mini">{{item.date}} {{item.time_start}} · {{item.venue}}</view></view>
+    <view class="mini">{{item.status === 'ended' ? '已结束' : item.status === 'ongoing' ? '进行中' : '未开始'}}</view>
+  </view>
+  <view wx:if="{{!mine.length}}" class="mini" style="text-align:center;padding:20rpx">还没报过名，去广场看看吧</view>
+</view>

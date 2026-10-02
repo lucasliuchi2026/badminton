@@ -1,0 +1,24 @@
+# Render 蓝图（Blueprint）：在 Render 新建 Blueprints 仓库时自动读取
+services:
+  - type: web
+    name: badminton-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////data/badminton.db
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: JWT_SECRET
+        generateValue: true   # 部署时自动生成随机密钥
+      # 微信小程序测试号可关校验；正式号需把 request/uploadFile 合法域名设为 https://badminton-api.onrender.com
+      # - key: WECHAT_APPID
+      # - key: WECHAT_SECRET
+    disk:
+      name: badminton-data
+      mountPath: /data
+      sizeGB: 1   # 注意：Render 磁盘为付费项（约 $1/月）；纯免费请删掉本段并接受重启清库

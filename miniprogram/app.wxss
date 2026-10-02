@@ -1,0 +1,50 @@
+/* 全局样式：运动风 · 深蓝 + 荧光绿（与 UI 原型 v2 对齐） */
+page { background: #f4f6fb; font-family: -apple-system, "PingFang SC", sans-serif; --navy: #0e1526; --navy2: #1b2a4a; --lime: #c6ff3d; --pink: #ff5c8a; }
+
+.card { background: #fff; border-radius: 32rpx; padding: 28rpx; margin: 24rpx; box-shadow: 0 4rpx 20rpx rgba(14,21,38,.06); }
+.title { font-size: 32rpx; font-weight: 800; color: #16202e; }
+.sub { font-size: 24rpx; color: #7c8698; margin-top: 6rpx; }
+.mini { font-size: 22rpx; color: #9aa3b5; }
+.row { display: flex; align-items: center; }
+.between { justify-content: space-between; }
+
+.badge { font-size: 20rpx; padding: 4rpx 18rpx; border-radius: 999rpx; margin-left: 12rpx; font-weight: 600; display: inline-block; }
+.badge-dark { background: #0e1526; color: #c6ff3d; }
+.badge-blue { background: #e6f0ff; color: #2b6de8; }
+.badge-gray { background: #eceff5; color: #8b93a5; }
+.badge-green { background: #e8fbf1; color: #0aa85a; }
+
+.btn { display: block; width: 88%; margin: 20rpx auto 0; padding: 26rpx 0; border-radius: 999rpx; background: linear-gradient(135deg, #0e1526, #1b2a4a); color: #c6ff3d; font-size: 30rpx; font-weight: 800; text-align: center; letter-spacing: 2rpx; }
+.btn-lime { background: #c6ff3d; color: #0e1526; }
+.btn-ghost { background: #fff; color: #0e1526; border: 2rpx solid #d7dce8; font-weight: 600; }
+.btn-mini { display: inline-block; width: auto; padding: 12rpx 32rpx; font-size: 24rpx; margin: 0; }
+
+.hero { background: linear-gradient(135deg, #0e1526 0%, #1b2a4a 70%, #24406e 100%); border-radius: 40rpx; padding: 36rpx; color: #fff; margin: 24rpx; }
+.hero .club { font-size: 40rpx; font-weight: 900; }
+.hero .slogan { font-style: italic; font-weight: 800; color: #c6ff3d; font-size: 28rpx; margin-top: 8rpx; }
+.hero .intro { font-size: 22rpx; opacity: .8; margin-top: 16rpx; line-height: 1.7; }
+.hero-stats { display: flex; gap: 40rpx; margin-top: 28rpx; }
+.hero-stats .v { font-size: 40rpx; font-weight: 900; color: #c6ff3d; }
+.hero-stats .k { font-size: 20rpx; opacity: .7; margin-top: 4rpx; }
+
+.bar-track { height: 14rpx; background: #edf0f6; border-radius: 8rpx; overflow: hidden; margin-top: 8rpx; }
+.bar-m { background: linear-gradient(90deg, #2b6de8, #16e87a); height: 100%; border-radius: 8rpx; }
+.bar-f { background: linear-gradient(90deg, #ff8ab0, #ff5c8a); height: 100%; border-radius: 8rpx; }
+
+.chip { display: inline-flex; align-items: center; background: #f2f5fa; border-radius: 999rpx; padding: 8rpx 20rpx 8rpx 8rpx; font-size: 24rpx; color: #3c465a; margin: 8rpx 12rpx 0 0; }
+.chip .dot { width: 44rpx; height: 44rpx; border-radius: 50%; color: #fff; font-size: 22rpx; display: flex; align-items: center; justify-content: center; margin-right: 10rpx; font-weight: 700; }
+.dot-m { background: linear-gradient(135deg, #2b6de8, #16e87a); }
+.dot-f { background: linear-gradient(135deg, #ff8ab0, #ff5c8a); }
+
+.seg { display: flex; background: #e9edf5; border-radius: 20rpx; overflow: hidden; margin: 24rpx 24rpx 0; }
+.seg .s { flex: 1; text-align: center; padding: 18rpx 0; font-size: 26rpx; color: #7c8698; font-weight: 600; }
+.seg .s.on { background: #0e1526; color: #c6ff3d; border-radius: 20rpx; }
+
+.li { display: flex; justify-content: space-between; align-items: center; padding: 24rpx 0; border-bottom: 2rpx solid #f1f3f8; font-size: 26rpx; }
+.li:last-child { border-bottom: none; }
+.pos { color: #0aa85a; font-weight: 700; }
+.neg { color: #ff5c8a; font-weight: 700; }
+
+.field-label { font-size: 24rpx; color: #5a6478; margin-top: 24rpx; font-weight: 600; }
+.field-input { background: #fff; border: 3rpx solid #dfe4ee; border-radius: 20rpx; padding: 20rpx 24rpx; margin-top: 10rpx; font-size: 28rpx; }
+.hint { font-size: 22rpx; color: #5a6478; background: #fff; border-left: 6rpx solid #16e87a; border-radius: 16rpx; padding: 16rpx 20rpx; margin: 24rpx 24rpx 0; }

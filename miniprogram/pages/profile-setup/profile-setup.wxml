@@ -1,0 +1,27 @@
+<view class="hero">
+  <view class="club" style="font-size:36rpx">欢迎来打球 🏸</view>
+  <view class="slogan">先起个群里叫的名字</view>
+  <view class="intro">昵称用于报名名单与积分排行；点输入框时微信会推荐你的微信昵称，点一下即可填入</view>
+</view>
+
+<view class="card">
+  <view class="title" style="text-align:center">头像</view>
+  <view style="display:flex;justify-content:center;margin-top:24rpx">
+    <button open-type="chooseAvatar" bindchooseavatar="chooseAvatar" style="padding:0;margin:0;line-height:1;background:none;border:none">
+      <image wx:if="{{avatarPreview}}" src="{{avatarPreview}}" mode="aspectFill" style="width:160rpx;height:160rpx;border-radius:50%"/>
+      <view wx:else class="dot dot-m" style="width:160rpx;height:160rpx;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:44rpx">📷</view>
+    </button>
+  </view>
+  <view class="mini" style="text-align:center;margin-top:12rpx">点击选择微信头像</view>
+
+  <view class="field-label">昵称</view>
+  <input class="field-input" type="nickname" placeholder="点击填写，微信昵称会自动推荐" value="{{nickname}}" bindinput="onNick"/>
+
+  <view class="field-label">性别（影响活动男女名额报名）</view>
+  <view class="row" style="gap:20rpx;margin-top:12rpx">
+    <view class="btn btn-mini {{gender === 'M' ? 'btn-lime' : 'btn-ghost'}}" data-g="M" bindtap="onGender">男 ♂</view>
+    <view class="btn btn-mini {{gender === 'F' ? 'btn-lime' : 'btn-ghost'}}" data-g="F" bindtap="onGender">女 ♀</view>
+  </view>
+
+  <view class="btn btn-lime {{saving ? 'btn-ghost' : ''}}" bindtap="save">{{saving ? '保存中…' : '开始使用'}}</view>
+</view>
